@@ -145,7 +145,7 @@ services:
       - traefik.constraint-label-stack=appwrite
       - traefik.http.services.appwrite_console.loadbalancer.server.port=3000
       - traefik.http.routers.appwrite_console_http.entrypoints=appwrite_web
-      - traefik.http.routers.appwrite_console_http.rule=!PathPrefix(`/v1`) && !PathPrefix(`/.well-known`)
+      - traefik.http.routers.appwrite_console_http.rule=(Host(`${_APP_DOMAIN}`) || Host(`${_APP_CONSOLE_DOMAIN}`)) && !PathPrefix(`/v1`) && !PathPrefix(`/.well-known`) && !HeaderRegexp(`x-appwrite-hostname`, `.+`)
       - traefik.http.routers.appwrite_console_http.service=appwrite_console
 
   appwrite-realtime:
@@ -205,6 +205,15 @@ services:
       - _APP_ENV
       - _APP_WORKERS_NUM=1
       - _APP_WORKER_MAX_COROUTINES=78
+      - _APP_WORKER_PER_CORE
+      - _APP_POOL_ADAPTER
+      - _APP_FUNCTIONS_TIMEOUT
+      - _APP_SITES_TIMEOUT
+      - _APP_COMPUTE_BUILD_TIMEOUT
+      - _APP_COMPUTE_CPUS
+      - _APP_COMPUTE_MEMORY
+      - _APP_OPEN_RUNTIMES_NFT
+      - _APP_COMPUTE_SIZE_LIMIT
       - _APP_OPENSSL_KEY_V1
       - _APP_DB_ADAPTER
       - _APP_DB_HOST
@@ -253,6 +262,13 @@ services:
       - _APP_DB_SCHEMA
       - _APP_DB_USER
       - _APP_DB_PASS
+      - _APP_WORKER_PER_CORE
+      - _APP_POOL_ADAPTER
+      - _APP_DOMAIN_FUNCTIONS
+      - _APP_OPTIONS_FORCE_HTTPS
+      - _APP_CONSOLE_SCHEMA
+      - _APP_DOMAIN_SITES
+      - _APP_MIGRATION_HOST
 
   appwrite-task-maintenance:
     entrypoint: maintenance
@@ -274,6 +290,9 @@ services:
       - _APP_DB_USER
       - _APP_DB_PASS
       - _APP_DOMAIN
+      - _APP_WORKER_PER_CORE
+      - _APP_POOL_ADAPTER
+      - _APP_DOMAIN_FUNCTIONS
 
   appwrite-task-interval:
     entrypoint: interval
@@ -295,6 +314,10 @@ services:
       - _APP_DB_USER
       - _APP_DB_PASS
       - _APP_DOMAIN
+      - _APP_DOMAIN_FUNCTIONS
+      - _APP_DOMAIN_SITES
+      - _APP_INTERVAL_DOMAIN_VERIFICATION
+      - _APP_INTERVAL_CLEANUP_STALE_EXECUTIONS
 
   appwrite-browser:
     image: appwrite/browser:0.3.4
