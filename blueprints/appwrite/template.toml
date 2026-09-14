@@ -6,6 +6,7 @@ jobs_secret = "${password:32}"
 main_domain = "${domain}"
 openssl_key = "${password:32}"
 tracking_secret = "${password:32}"
+usage_pass = "${password:32}"
 
 [config]
 env = [
@@ -17,7 +18,7 @@ env = [
   "_APP_DOMAIN_FUNCTIONS=functions.${main_domain}",
   "_APP_DOMAIN_SITES=sites.${main_domain}",
   "_APP_OPTIONS_FORCE_HTTPS=enabled",
-  "_APP_OPTIONS_ROUTER_FORCE_HTTPS=enabled",
+  "_APP_OPTIONS_ROUTER_FORCE_HTTPS=disabled",
   "_APP_OPENSSL_KEY_V1=${openssl_key}",
   "_APP_NOTIFICATIONS_TRACKING_SECRET=${tracking_secret}",
   "_APP_DB_ADAPTER=postgresql",
@@ -29,10 +30,33 @@ env = [
   "_APP_EXECUTOR_SECRET=${executor_secret}",
   "_APP_JOBS_SECRET=${jobs_secret}",
   "_APP_GEO_SECRET=${geo_secret}",
+  "_APP_USAGE_PASS=${usage_pass}",
+  "_APP_CONNECTIONS_DB_USAGE=http://appwrite:${usage_pass}@clickhouse:8123/appwrite",
+  "_APP_CONNECTIONS_DB_EXECUTIONS=http://appwrite:${usage_pass}@clickhouse:8123/appwrite",
   "_APP_TRUSTED_HEADERS=x-forwarded-for,x-forwarded-proto,x-real-ip",
+  "_APP_COMPUTE_RUNTIMES_NETWORK=dokploy-network",
+  "_APP_REDIS_HOST=redis",
+  "_APP_REDIS_PORT=6379",
+  "_APP_USAGE_STATS=enabled",
+  "_APP_EXECUTOR_HOST=http://exc1/v1",
+  "_APP_JOBS_HOST=http://orchestrator:8080",
+  "_APP_JOBS_ENDPOINT=http://appwrite",
+  "_APP_GEO_ENDPOINT=http://appwrite-geo/v1",
+  "_APP_BUILDS_VOLUME=appwrite-builds",
+  "_APP_BROWSER_HOST=http://appwrite-browser:3000/v1",
 ]
 
 [[config.domains]]
 host = "${main_domain}"
+port = 80
+serviceName = "traefik"
+
+[[config.domains]]
+host = "functions.${main_domain}"
+port = 80
+serviceName = "traefik"
+
+[[config.domains]]
+host = "sites.${main_domain}"
 port = 80
 serviceName = "traefik"

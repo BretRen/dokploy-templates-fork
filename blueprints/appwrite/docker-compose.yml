@@ -26,8 +26,6 @@ services:
       - appwrite-certificates:/storage/certificates:ro
     depends_on:
       - appwrite
-    networks:
-      - appwrite
 
   appwrite:
     <<: *x-logging
@@ -36,17 +34,14 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - 'curl -fsS -o /dev/null -H "Host: appwrite.pdnode.com" http://localhost/v1/health/version'
+        - 'curl -fsS -o /dev/null -H "Host: localhost" http://localhost/v1/health/version'
       interval: 5s
       timeout: 5s
       retries: 12
       start_period: 120s
-    networks:
-      - appwrite
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=appwrite
-      - traefik.docker.network=appwrite
       - traefik.http.services.appwrite_api.loadbalancer.server.port=80
       - traefik.http.routers.appwrite_api_http.entrypoints=appwrite_web
       - traefik.http.routers.appwrite_api_http.rule=PathPrefix(`/`)
@@ -63,7 +58,6 @@ services:
     depends_on:
       - redis
       - postgresql
-      - appwrite-embedding
       - appwrite-geo
     environment:
       - _APP_ENV
@@ -141,18 +135,15 @@ services:
     <<: *x-logging
     image: appwrite/new:1.1.8
     restart: unless-stopped
-    networks:
-      - appwrite
     environment:
       - VITE_CONSOLE_PROFILE=self-hosted
       - APPWRITE_ENDPOINT_SAME_ORIGIN=true
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=appwrite
-      - traefik.docker.network=appwrite
       - traefik.http.services.appwrite_console.loadbalancer.server.port=3000
       - traefik.http.routers.appwrite_console_http.entrypoints=appwrite_web
-      - traefik.http.routers.appwrite_console_http.rule=(Host(`appwrite.pdnode.com`)) && !PathPrefix(`/v1`) && !PathPrefix(`/.well-known`)
+      - traefik.http.routers.appwrite_console_http.rule=!PathPrefix(`/v1`) && !PathPrefix(`/.well-known`)
       - traefik.http.routers.appwrite_console_http.service=appwrite_console
 
   appwrite-realtime:
@@ -163,13 +154,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=appwrite
-      - traefik.docker.network=appwrite
       - traefik.http.services.appwrite_realtime.loadbalancer.server.port=80
       - traefik.http.routers.appwrite_realtime_ws.entrypoints=appwrite_web
       - traefik.http.routers.appwrite_realtime_ws.rule=PathPrefix(`/v1/realtime`)
       - traefik.http.routers.appwrite_realtime_ws.service=appwrite_realtime
-    networks:
-      - appwrite
     depends_on:
       - postgresql
       - redis
@@ -197,8 +185,6 @@ services:
     restart: unless-stopped
     <<: *x-logging
     image: appwrite/appwrite:2.0.0
-    networks:
-      - appwrite
     depends_on:
       - redis
       - postgresql
@@ -248,8 +234,6 @@ services:
     restart: unless-stopped
     <<: *x-logging
     image: appwrite/appwrite:2.0.0
-    networks:
-      - appwrite
     depends_on:
       - postgresql
       - redis
@@ -273,8 +257,6 @@ services:
     restart: unless-stopped
     <<: *x-logging
     image: appwrite/appwrite:2.0.0
-    networks:
-      - appwrite
     depends_on:
       - postgresql
       - redis
@@ -296,8 +278,6 @@ services:
     restart: unless-stopped
     <<: *x-logging
     image: appwrite/appwrite:2.0.0
-    networks:
-      - appwrite
     depends_on:
       - postgresql
       - redis
@@ -317,18 +297,14 @@ services:
   appwrite-browser:
     image: appwrite/browser:0.3.4
     restart: unless-stopped
-    networks:
-      - appwrite
 
   clickhouse:
     image: clickhouse/clickhouse-server:26.4.3-alpine
     restart: unless-stopped
-    networks:
-      - appwrite
     environment:
       - CLICKHOUSE_DB=appwrite
       - CLICKHOUSE_USER=appwrite
-      - CLICKHOUSE_PASSWORD=appwrite
+      - CLICKHOUSE_PASSWORD=${_APP_USAGE_PASS}
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     volumes:
       - appwrite-clickhouse:/var/lib/clickhouse:rw
@@ -341,8 +317,6 @@ services:
     <<: *x-logging
     image: appwrite/geo:0.3.1
     restart: unless-stopped
-    networks:
-      - appwrite
     environment:
       - GEO_SECRET=${_APP_GEO_SECRET}
 
@@ -352,9 +326,6 @@ services:
     stop_signal: SIGINT
     image: openruntimes/executor:0.29.0
     restart: unless-stopped
-    networks:
-      - appwrite
-      - runtimes
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - appwrite-builds:/storage/builds:rw
@@ -379,22 +350,18 @@ services:
     image: ghcr.io/open-runtimes/orchestrator/orchestrator:1.9.2
     restart: unless-stopped
     user: root
-    networks:
-      - appwrite
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - ORCHESTRATOR_BACKEND=docker
-      - ORCHESTRATOR_NETWORK=appwrite
-      - DOCKER_NETWORK=appwrite
+      - ORCHESTRATOR_NETWORK=dokploy-network
+      - DOCKER_NETWORK=dokploy-network
       - ARTIFACT_ENDPOINT=http://orchestrator:8080
 
   postgresql:
     image: appwrite/postgres:0.1.0
     <<: *x-logging
     restart: unless-stopped
-    networks:
-      - appwrite
     volumes:
       - appwrite-postgresql:/var/lib/postgresql:rw
     environment:
@@ -408,16 +375,6 @@ services:
       retries: 10
       start_period: 10s
 
-  appwrite-embedding:
-    image: appwrite/embedding:0.1.0
-    restart: unless-stopped
-    environment:
-      EMBEDDING_MODELS: ${_APP_EMBEDDING_MODELS:-nomic-embed-text}
-    volumes:
-      - appwrite-models:/home/embedder/models
-    networks:
-      - appwrite
-
   redis:
     image: redis:7.4.7-alpine
     <<: *x-logging
@@ -430,16 +387,8 @@ services:
         "--maxmemory-policy",
         "allkeys-lru",
       ]
-    networks:
-      - appwrite
     volumes:
       - appwrite-redis:/data:rw
-
-networks:
-  appwrite:
-    name: appwrite
-  runtimes:
-    name: runtimes
 
 volumes:
   appwrite-postgresql:
@@ -454,4 +403,3 @@ volumes:
   appwrite-builds:
     name: appwrite-builds
   appwrite-config:
-  appwrite-models:
