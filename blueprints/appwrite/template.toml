@@ -34,7 +34,6 @@ env = [
   "_APP_CONNECTIONS_DB_USAGE=http://appwrite:${usage_pass}@clickhouse:8123/appwrite",
   "_APP_CONNECTIONS_DB_EXECUTIONS=http://appwrite:${usage_pass}@clickhouse:8123/appwrite",
   "_APP_TRUSTED_HEADERS=x-forwarded-for,x-forwarded-proto,x-real-ip",
-  "_APP_COMPUTE_RUNTIMES_NETWORK=dokploy-network",
   "_APP_REDIS_HOST=redis",
   "_APP_REDIS_PORT=6379",
   "_APP_USAGE_STATS=enabled",
@@ -44,8 +43,24 @@ env = [
   "_APP_GEO_ENDPOINT=http://appwrite-geo/v1",
   "_APP_BUILDS_VOLUME=appwrite-builds",
   "_APP_BROWSER_HOST=http://appwrite-browser:3000/v1",
+  "_APP_EXECUTOR_IMAGES=openruntimes/node:v5-22,openruntimes/static:v5-1",
+  "_APP_FUNCTIONS_RUNTIMES=node-22",
+  "_APP_SITES_RUNTIMES=static-1,node-22",
+  "_APP_COMPUTE_CPUS=0",
+  "_APP_COMPUTE_MEMORY=0",
+  "_APP_COMPUTE_BUILD_TIMEOUT=900",
+  "_APP_COMPUTE_INACTIVE_THRESHOLD=600",
+  "_APP_COMPUTE_MAINTENANCE_INTERVAL=600",
+  "_APP_COMPUTE_RUNTIMES_NETWORK=dokploy-network",
+  "_APP_OPEN_RUNTIMES_NFT=enabled",
+  "_APP_LOCALE=en",
+  "_APP_POOL_ADAPTER=stack",
+  "_APP_WORKER_PER_CORE=6",
+  "_APP_CONSOLE_SCHEMA=appwriteio",
+  "_APP_STORAGE_DEVICE=Local",
+  "_APP_MIGRATION_HOST=appwrite",
+  "_APP_REALTIME_TAIL_RATE=50",
 ]
-
 [[config.domains]]
 host = "${main_domain}"
 port = 80
